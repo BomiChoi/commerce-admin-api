@@ -14,31 +14,32 @@ class Command(BaseCommand):
     @transaction.atomic
     def handle(self, *args, **options):
         df = pandas.read_excel('data/wanted_data.xlsx')
+        countries = pandas.read_excel('data/DeliveryCost.xlsx').columns[2:]
+        
         for i, row in df.iterrows():
             # 날짜 변환
             date = datetime.strptime(str(row['Date']), '%Y%m%d').date()
-
-            # 배송비
-            delivery_cost = 0
-            # 한국일 경우 배송비 3000원
-            if row['buyr_country'] == 'KR':
-                delivery_cost = 3000
-            else:
-                # 국가 코드로 찾기
-                country = Country.objects.get(code=row['buyr_country'])
-                # 이탈리아일 경우 스위스로 계산
-                if row['buyr_country'] == 'IT':
-                    country = Country.objects.get(code='CH')
-                delivery_obj = DeliveryCost.objects.get(quantity=row['quantity'], country=country)
-                delivery_cost = delivery_obj.cost
-
-            Order.objects.create(
+            # 국가 코드로 찾기
+            country = Country.objects.get(code=row['buyr_country'])
+            # 주문 생성
+            order = Order.objects.create(
                 date=date,
                 pay_state=row['pay_state'],
                 quantity=row['quantity'],
                 price=row['price'],
-                delivery_cost=delivery_cost,
                 buyr_country=country,
                 buyr_city=row['buyr_city'],
                 buyr_zipcode=row['buyr_zipx'],
             )
+
+            # 해외 배송비 책정
+            if row['buyr_country'] != 'KR':
+                # 배송비 데이터 없는 국가일 경우 미국 기준으로 책정
+                if country.name not in countries:
+                    country = Country.objects.get(code='US')
+                delivery_obj = DeliveryCost.objects.get(quantity=row['quantity'], country=country)
+                delivery_cost = delivery_obj.cost
+                # 환율 적용 후 배송비 저장
+                rate = 1200
+                order.delivery_cost = delivery_cost / rate
+                order.save()
