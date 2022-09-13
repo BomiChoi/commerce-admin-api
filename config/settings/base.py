@@ -1,8 +1,9 @@
-import os
-import pymysql
 import datetime
+import os
 from pathlib import Path
+
 import environ
+import pymysql
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -12,20 +13,19 @@ environ.Env.read_env(
     env_file=os.path.join(BASE_DIR, '.env')
 )
 
-
 pymysql.install_as_MySQLdb()
 
 SECRET_KEY = env('SECRET_KEY')
 
 DATABASES = {
-    'default' : {
-        'ENGINE'  : 'django.db.backends.mysql',
-        'NAME'    : env('DB_NAME'),
-        'USER'    : env('DB_USER'),
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': env('DB_NAME'),
+        'USER': env('DB_USER'),
         'PASSWORD': env('DB_PASSWORD'),
-        'HOST'    : env('DB_HOST'),
-        'PORT'    : env('DB_PORT'),
-        'OPTIONS' : {'charset': 'utf8mb4'}
+        'HOST': env('DB_HOST'),
+        'PORT': env('DB_PORT'),
+        'OPTIONS': {'charset': 'utf8mb4'}
     }
 }
 
@@ -38,7 +38,7 @@ APPEND_SLASH = False
 CORS_ORIGIN_ALLOW_ALL = True
 
 CORS_ALLOW_CREDENTIALS = True
-    
+
 CORS_ALLOW_METHODS = (
     'DELETE',
     'GET',
@@ -57,7 +57,7 @@ CORS_ALLOW_HEADERS = (
     'origin',
     'user-agent',
     'x-csrftoken',
-    'x-requested-with',    		
+    'x-requested-with',
 )
 
 LOCAL_APPS = [
@@ -77,6 +77,7 @@ DJANGO_APPS = [
 THIRD_PARTY_APPS = [
     'rest_framework',
     'corsheaders',
+    "django_filters",
 ]
 
 INSTALLED_APPS = LOCAL_APPS + DJANGO_APPS + THIRD_PARTY_APPS
