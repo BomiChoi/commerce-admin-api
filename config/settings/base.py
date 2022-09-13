@@ -63,6 +63,7 @@ CORS_ALLOW_HEADERS = (
 LOCAL_APPS = [
     'apps.country.apps.CountryConfig',
     'apps.order.apps.OrderConfig',
+    'apps.coupon.apps.CouponConfig',
 ]
 
 DJANGO_APPS = [
