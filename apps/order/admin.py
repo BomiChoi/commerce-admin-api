@@ -13,6 +13,7 @@ class OrderAdmin(admin.ModelAdmin):
         'price',
         'delivery_cost',
         'buyr_country',
+        'buyr_city',
         'buyr_zipcode',
         'buyr_name',
         'delivery_num',

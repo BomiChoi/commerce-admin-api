@@ -4,6 +4,7 @@ from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 
 from apps.country.models import Country
+from apps.coupon.models import Coupon
 
 
 class OrderStatusChoices(models.TextChoices):
@@ -24,8 +25,9 @@ class Order(models.Model):
     buyr_country = models.ForeignKey(Country, on_delete=models.CASCADE, verbose_name='배송국가')
     buyr_city = models.CharField(max_length=50, null=True, blank=True, verbose_name='배송도시')
     buyr_zipcode = models.CharField(max_length=10, verbose_name='우편번호')
-    buyr_name = models.CharField(max_length=30, null=True, blank=True, verbose_name='주문자명')
+    buyr_name = models.CharField(max_length=30, verbose_name='주문자명')
     delivery_num = models.CharField(max_length=20, null=True, blank=True, verbose_name='송장번호')
+    coupon = models.ForeignKey(Coupon, null=True, blank=True, on_delete=models.PROTECT, verbose_name='쿠폰')
 
     class Meta:
         verbose_name = '주문내역'
