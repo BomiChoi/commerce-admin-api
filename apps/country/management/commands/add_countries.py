@@ -16,9 +16,16 @@ class Command(BaseCommand):
             # Nambia 국가코드가 nan으로 인식되는 문제 해결
             if pandas.isna(row['country_code']):
                 row['country_code'] = 'NA'
-            
+
             Country.objects.create(
                 name=row['country_name'],
                 code=row['country_code'],
                 dcode=row['country_dcode']
             )
+
+        # 배송비 데이터에 있는 Antiless Netherlands 추가
+        Country.objects.create(
+            name='Antiless Netherlands',
+            code='NL',
+            dcode='31'
+        )
