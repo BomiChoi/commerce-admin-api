@@ -2,6 +2,7 @@ import datetime
 
 from django.db import transaction
 from rest_framework import serializers
+from rest_framework.exceptions import ValidationError
 
 from apps.country.models import Country, DeliveryCost
 from apps.order.models import Order
@@ -59,6 +60,8 @@ class OrderSerializer(serializers.ModelSerializer):
         # 쿠폰 적용
         coupon = validated_data.get('coupon', None)
         if coupon:
+            if coupon.is_used:
+                raise ValidationError({'coupon': '이미 사용된 쿠폰입니다.'})
             discount_amount = 0
             category = coupon.type.category
             if category == '배송비 할인':
