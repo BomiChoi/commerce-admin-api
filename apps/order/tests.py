@@ -119,9 +119,7 @@ class TestOrder(APITestCase):
         data = {
             'category': '배송비 할인',
             'name': '배송비 2000원 할인 쿠폰',
-            'value': 2000,
-            'issue_date': '2022-09-14',
-            'expr_date': '2022-10-14'
+            'value': 2000
         }
         coupon_type = self.client.post(self.coupon_type_url, data, format='json')
 
@@ -156,9 +154,7 @@ class TestOrder(APITestCase):
         data = {
             'category': '% 할인',
             'name': '30% 할인 쿠폰',
-            'value': 30,
-            'issue_date': '2022-09-14',
-            'expr_date': '2022-10-14'
+            'value': 30
         }
         coupon_type = self.client.post(self.coupon_type_url, data, format='json')
 
@@ -193,9 +189,7 @@ class TestOrder(APITestCase):
         data = {
             'category': '정액 할인',
             'name': '10000원 할인 쿠폰',
-            'value': 10000,
-            'issue_date': '2022-09-14',
-            'expr_date': '2022-10-14'
+            'value': 10000
         }
         coupon_type = self.client.post(self.coupon_type_url, data, format='json')
 
@@ -230,9 +224,7 @@ class TestOrder(APITestCase):
         data = {
             'category': '배송비 할인',
             'name': '배송비 2000원 할인 쿠폰',
-            'value': 2000,
-            'issue_date': '2022-09-14',
-            'expr_date': '2022-10-14'
+            'value': 2000
         }
         coupon_type = self.client.post(self.coupon_type_url, data, format='json')
 
@@ -243,7 +235,7 @@ class TestOrder(APITestCase):
         }
         coupon = self.client.post(self.coupon_url, data, format='json')
 
-        # 주문 2번 생성
+        # 주문 생성
         data = {
             'quantity': 2,
             'price': 100000,
@@ -252,8 +244,78 @@ class TestOrder(APITestCase):
             'buyr_name': '최보미',
             'coupon': coupon.data['id']
         }
+
+        # 요청이 성공적으로 처리되었는지 확인
         self.response = self.client.post(self.order_url, data, format='json')
+        self.assertEqual(self.response.status_code, status.HTTP_201_CREATED)
+
+        # ValidationError가 발생하는지 확인
+        self.response = self.client.post(self.order_url, data, format='json')
+        self.assertEqual(self.response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_coupon_expr_date(self):
+        """ 쿠폰 유효기간 테스트 """
+
+        # 쿠폰 타입 생성
+        data = {
+            'category': '배송비 할인',
+            'name': '배송비 2000원 할인 쿠폰',
+            'value': 2000,
+            'issue_date': '2022-07-14',
+            'expr_date': '2022-08-14'
+        }
+        coupon_type = self.client.post(self.coupon_type_url, data, format='json')
+
+        # 쿠폰 생성
+        data = {
+            'type': coupon_type.data['id'],
+            'code': 'ABCD-EFGH-IJKL-MNOP'
+        }
+        coupon = self.client.post(self.coupon_url, data, format='json')
+
+        # 주문 생성
+        data = {
+            'quantity': 1,
+            'price': 50000,
+            'buyr_country': Country.objects.get(code='KR').id,
+            'buyr_zipcode': '08816',
+            'buyr_name': '최보미',
+            'coupon': coupon.data['id']
+        }
         self.response = self.client.post(self.order_url, data, format='json')
 
-        # ValidationError가 발생했는지 확인
+        # ValidationError가 발생하는지 확인
+        self.assertEqual(self.response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_coupon_min_price(self):
+        """ 쿠폰 최소금액조건 테스트 """
+
+        # 쿠폰 타입 생성
+        data = {
+            'category': '배송비 할인',
+            'name': '배송비 2000원 할인 쿠폰',
+            'value': 2000,
+            'min_price': 100000
+        }
+        coupon_type = self.client.post(self.coupon_type_url, data, format='json')
+
+        # 쿠폰 생성
+        data = {
+            'type': coupon_type.data['id'],
+            'code': 'ABCD-EFGH-IJKL-MNOP'
+        }
+        coupon = self.client.post(self.coupon_url, data, format='json')
+
+        # 주문 생성
+        data = {
+            'quantity': 1,
+            'price': 50000,
+            'buyr_country': Country.objects.get(code='KR').id,
+            'buyr_zipcode': '08816',
+            'buyr_name': '최보미',
+            'coupon': coupon.data['id']
+        }
+        self.response = self.client.post(self.order_url, data, format='json')
+
+        # ValidationError가 발생하는지 확인
         self.assertEqual(self.response.status_code, status.HTTP_400_BAD_REQUEST)
