@@ -4,19 +4,6 @@ from rest_framework.exceptions import ValidationError
 from apps.coupon.models import Coupon, CouponType
 
 
-class CouponSerializer(serializers.ModelSerializer):
-    is_used = serializers.BooleanField(read_only=True)
-
-    class Meta:
-        model = Coupon
-        fields = (
-            'id',
-            'type',
-            'code',
-            'is_used'
-        )
-
-
 class CouponTypeSerializer(serializers.ModelSerializer):
     used_time = serializers.IntegerField(read_only=True)
     total_discount = serializers.DecimalField(max_digits=16, decimal_places=2, read_only=True)
@@ -45,3 +32,20 @@ class CouponTypeSerializer(serializers.ModelSerializer):
             raise ValidationError({'expr_date', '쿠폰 만료일은 발급일 이후여야 합니다.'})
 
         return attrs
+
+
+class CouponSerializer(serializers.ModelSerializer):
+    is_used = serializers.BooleanField(read_only=True)
+
+    class Meta:
+        model = Coupon
+        fields = (
+            'id',
+            'type',
+            'code',
+            'is_used'
+        )
+
+
+class CouponListSerializer(CouponSerializer):
+    type = CouponTypeSerializer(read_only=True)
