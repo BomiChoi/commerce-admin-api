@@ -15,9 +15,11 @@ class CouponCategoryChoices(models.TextChoices):
 class CouponType(models.Model):
     category = models.CharField(max_length=16, choices=CouponCategoryChoices.choices, verbose_name='유형')
     name = models.CharField(max_length=50, verbose_name='이름')
-    value = models.DecimalField(max_digits=8, decimal_places=2, verbose_name='할인값')
+    value = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)], verbose_name='할인값')
     issue_date = models.DateField(default=date.today, verbose_name='발급일')
     expr_date = models.DateField(null=True, blank=True, verbose_name='만료일')
+    min_price = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)], null=True,
+                                    blank=True, verbose_name='최소금액조건')
     used_time = models.IntegerField(default=0, validators=[MinValueValidator(0)], verbose_name='사용횟수')
     total_discount = models.DecimalField(max_digits=16, decimal_places=2, default=0, validators=[MinValueValidator(0)],
                                          verbose_name='총 할인액')
@@ -32,7 +34,7 @@ class CouponType(models.Model):
 
 class Coupon(TimeStampedModel):
     type = models.ForeignKey(CouponType, on_delete=models.CASCADE, verbose_name='종류')
-    code = models.CharField(max_length=20, verbose_name='코드')
+    code = models.CharField(max_length=20, verbose_name='코드', unique=True)
     is_used = models.BooleanField(default=False, verbose_name='사용여부')
 
     class Meta:

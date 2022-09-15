@@ -19,7 +19,7 @@ class Order(models.Model):
     date = models.DateField(default=date.today, verbose_name='주문일자')
     pay_state = models.CharField(max_length=10, choices=OrderStatusChoices.choices, default='결제완료', verbose_name='주문상태')
     quantity = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(72)], verbose_name='수량')
-    price = models.DecimalField(max_digits=16, decimal_places=2, validators=[MinValueValidator(0)], verbose_name='가격')
+    price = models.DecimalField(max_digits=16, decimal_places=2, validators=[MinValueValidator(0)], verbose_name='금액')
     delivery_cost = models.DecimalField(max_digits=8, decimal_places=2, validators=[MinValueValidator(0)], default=3000,
                                         verbose_name='배송비')
     buyr_country = models.ForeignKey(Country, on_delete=models.CASCADE, verbose_name='배송국가')
