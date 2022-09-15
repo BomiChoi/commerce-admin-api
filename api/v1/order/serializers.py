@@ -36,6 +36,18 @@ class OrderSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, attrs):
+        # 국가 설정
+        country = attrs['buyr_country']
+
+        # 배송비 책정
+        attrs['delivery_cost'] = 3000
+        if country.code != 'KR':
+            countries = list(set(DeliveryCost.objects.values_list('country__code', flat=True)))
+            # 배송비 데이터 없는 국가일 경우 미국 기준으로 책정
+            if country.code not in countries:
+                country = Country.objects.get(code='US')
+            attrs['delivery_cost'] = DeliveryCost.objects.get(country=country, quantity=attrs['quantity']).cost
+
         coupon = attrs.get('coupon', None)
         if coupon:
             # 사용 여부 확인
@@ -54,6 +66,10 @@ class OrderSerializer(serializers.ModelSerializer):
             if coupon.type.category == '정액 할인' and coupon.type.value > attrs['price']:
                 raise ValidationError({'coupon': '할인액이 원래 금액보다 더 큽니다.'})
 
+            # 할인액이 원래 배송비보다 더 크지 않은지 확인
+            if coupon.type.category == '배송비 할인' and coupon.type.value > attrs['delivery_cost']:
+                raise ValidationError({'coupon': '할인액이 원래 배송비보다 더 큽니다.'})
+
         return attrs
 
     @transaction.atomic()
@@ -66,18 +82,6 @@ class OrderSerializer(serializers.ModelSerializer):
         # 주문일자 저장
         order.date = datetime.date.today()
 
-        # 국가 설정
-        country = order.buyr_country
-        is_foreign = (country.code != 'KR')
-
-        # 해외 배송비 책정
-        if is_foreign:
-            countries = list(set(DeliveryCost.objects.values_list('country__code', flat=True)))
-            # 배송비 데이터 없는 국가일 경우 미국 기준으로 책정
-            if country.code not in countries:
-                country = Country.objects.get(code='US')
-            order.delivery_cost = DeliveryCost.objects.get(country=country, quantity=order.quantity).cost
-
         # 쿠폰 적용
         coupon = validated_data.get('coupon', None)
         if coupon:
@@ -85,8 +89,6 @@ class OrderSerializer(serializers.ModelSerializer):
             category = coupon.type.category
             if category == '배송비 할인':
                 discount_amount = coupon.type.value
-                if discount_amount > order.delivery_cost:
-                    raise ValidationError({'coupon': '할인액이 원래 배송비보다 더 큽니다.'})
                 order.delivery_cost -= discount_amount
             elif category == '% 할인':
                 discount_amount = order.price * coupon.type.value / 100
@@ -102,7 +104,7 @@ class OrderSerializer(serializers.ModelSerializer):
             coupon.type.save()
 
         # 해외일 경우 환율 적용
-        if is_foreign:
+        if order.buyr_country.code != 'KR':
             rate = 1200  # 달러 환율
             order.price /= rate
             order.delivery_cost /= rate
