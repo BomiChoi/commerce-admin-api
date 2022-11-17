@@ -123,7 +123,7 @@
 
 ## API 목록
 
-https://documenter.getpostman.com/view/17766148/2s7YYva2x5
+https://app.swaggerhub.com/apis/BomiChoi/commerce-admin-api/v1
 
 <br>
 
